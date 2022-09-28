@@ -1,4 +1,4 @@
-import copy
+import copy, math
 
 
 class Crop:
@@ -31,43 +31,52 @@ class Fertilizer(Crop):  # fertilizer object - inherits form Crop
         return f'{self.name} + {self.formation}'
 
 
-def fertilizer_recommendation(crop, fertilizer):
+def fertilizer_recommendation(crop, *args):
     """" Determine quantity of fertilisers base on crop need """
 
-    recommendation = {}
+    recommendations = {}
+    for idx, fertilizer in enumerate(args):
+        highest_ratio, middle_ratio, lowest_ratio = fertilizer.sorted()
+        highest_npk_key, highest_npk_vale = highest_ratio.popitem()
+        middle_npk_key, middle_npk_value = middle_ratio.popitem()
+        lowest_npk_key, lowest_npk_value = lowest_ratio.popitem()
 
-    highest_ratio, middle_ratio, lowest_ratio = fertilizer.sorted()
-    highest_npk_key, highest_npk_vale = highest_ratio.popitem()
-    middle_npk_key, middle_npk_value = middle_ratio.popitem()
-    lowest_npk_key, lowest_npk_value = lowest_ratio.popitem()
+        #TODO: if max of fertilizer one is grater than middle of fertilizer 2
 
-    if highest_npk_vale != 0:
-        highest_of_ratio = getattr(fertilizer, highest_npk_key)
-        requirement_highest_kg = getattr(crop, highest_npk_key) * (100/highest_of_ratio)
-        recommendation.update({highest_npk_key: requirement_highest_kg})  # recommendation for highest_npk_key
+        if highest_npk_vale != 0:  # Todo: make sure that only fertilizer one is assigned
+            highest_of_ratio = getattr(fertilizer, highest_npk_key)
+            requirement_highest_kg = math.ceil(getattr(crop, highest_npk_key) * (100/highest_of_ratio))
 
-    if middle_ratio != 0:
-        middle_of_ratio = getattr(fertilizer, middle_npk_key)
-        added_kg_middle = (middle_of_ratio / 100) * requirement_highest_kg
-        remaining_middle = getattr(crop, middle_npk_key) - added_kg_middle
-        print(remaining_middle)  # remaining middle value  
+        recommendations.update({
+            fertilizer.name: requirement_highest_kg,
+        })
 
-    if lowest_ratio != 0:
-        lowest_of_ratio = getattr(fertilizer, lowest_npk_key)
-        added_kg_lowest = (lowest_of_ratio / 100) * requirement_highest_kg
-        remaining_lowest = getattr(crop, lowest_npk_key) - added_kg_lowest
-        print(remaining_lowest)  # remaining lowest value
+        if middle_ratio != 0:
+            middle_of_ratio = getattr(fertilizer, middle_npk_key)
+            added_kg_middle = (middle_of_ratio / 100) * requirement_highest_kg
+            remaining_middle = math.ceil(getattr(crop, middle_npk_key) - added_kg_middle)
+            # print(remaining_middle)  # remaining middle value
 
-    setattr(crop, highest_npk_key, 0)
-    setattr(crop, middle_npk_key, remaining_middle)
-    setattr(crop, lowest_npk_key, remaining_lowest)
+        if lowest_ratio != 0:
+            lowest_of_ratio = getattr(fertilizer, lowest_npk_key)
+            added_kg_lowest = (lowest_of_ratio / 100) * requirement_highest_kg
+            remaining_lowest = math.ceil(getattr(crop, lowest_npk_key) - added_kg_lowest)
+            # print(remaining_lowest)  # remaining lowest value
+
+        # todo Should only be applied to the first instance
+
+        setattr(crop, highest_npk_key, 0)
+        setattr(crop, middle_npk_key, remaining_middle)
+        setattr(crop, lowest_npk_key, remaining_lowest)
+
+    return recommendations
 
 
 def main():
 
     crop = Crop("Corn", 120, 60, 40)
-    fertilizer_one = Fertilizer("DAP", 18, 46, 12)
-    fertilizer_recommendation(crop, fertilizer_one)
+    recommendations = fertilizer_recommendation(crop, Fertilizer("DAP", 18, 46, 0), Fertilizer("MOP", 22, 8, 7))
+    print(recommendations)
 
 
 if __name__ == "__main__":
