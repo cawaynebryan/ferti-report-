@@ -1,4 +1,4 @@
-var = {
+crops_collections = {
        "Corn": {"N": 180, "P2O5": 80, "K2O": 220, "S": 20, "CaO": 10, "MgO": 2},
        "Rice": {"N": 150, "P2O5": 50, "K2O": 100, "S": 10, "CaO": 0, "MgO": 0},
        "Sorghum": {"N": 100, "P2O5": 40, "K2O": 80, "S": 0, "CaO": 0, "MgO": 0},

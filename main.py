@@ -1,4 +1,5 @@
 import copy, math
+from db import crops_db
 
 
 class Crop:
@@ -19,19 +20,19 @@ class Crop:
         return ratio
 
     def __repr__(self):
-        return f'{self.crop} {self.formation}'
+        return f'{self.name} {self.formation}'
 
 
 class Fertilizer(Crop):  # fertilizer object - inherits form Crop
     def __init__(self, name, n=0, p=0, k=0):
         super().__init__(name, n, p, k)
-        self.weight = self.N + self.P + self.K
+        self.weight = self.N + self.P + self.K #TODO: review purpose for this attribute
 
     def __repr__(self):
         return f'{self.name} + {self.formation}'
 
 
-def fertilizer_recommendation(crop, *args):
+def calculate_fertilizer(crop, *args):
     """" Determine quantity of fertilisers base on crop need """
 
     recommendations = {}
@@ -45,7 +46,7 @@ def fertilizer_recommendation(crop, *args):
 
         if highest_npk_vale != 0:  # Todo: make sure that only fertilizer one is assigned
             highest_of_ratio = getattr(fertilizer, highest_npk_key)
-            requirement_highest_kg = math.ceil(getattr(crop, highest_npk_key) * (100/highest_of_ratio))
+            requirement_highest_kg = math.floor(getattr(crop, highest_npk_key) * (100/highest_of_ratio))
 
         recommendations.update({
             fertilizer.name: requirement_highest_kg,
@@ -54,13 +55,13 @@ def fertilizer_recommendation(crop, *args):
         if middle_ratio != 0:
             middle_of_ratio = getattr(fertilizer, middle_npk_key)
             added_kg_middle = (middle_of_ratio / 100) * requirement_highest_kg
-            remaining_middle = math.ceil(getattr(crop, middle_npk_key) - added_kg_middle)
+            remaining_middle = math.floor(getattr(crop, middle_npk_key) - added_kg_middle)
             # print(remaining_middle)  # remaining middle value
 
         if lowest_ratio != 0:
             lowest_of_ratio = getattr(fertilizer, lowest_npk_key)
             added_kg_lowest = (lowest_of_ratio / 100) * requirement_highest_kg
-            remaining_lowest = math.ceil(getattr(crop, lowest_npk_key) - added_kg_lowest)
+            remaining_lowest = math.floor(getattr(crop, lowest_npk_key) - added_kg_lowest)
             # print(remaining_lowest)  # remaining lowest value
 
         # todo Should only be applied to the first instance
@@ -72,10 +73,26 @@ def fertilizer_recommendation(crop, *args):
     return recommendations
 
 
-def main():
+def get_selected_crop(selected):
+    crop = crops_db.crops_collections.get(selected.capitalize())
+    if crop is not None:
+        required_n = crop.get('N')
+        required_p = crop.get('P2O5')
+        required_k = crop.get('K2O')
+        selected_crop = Crop(selected, required_n, required_p, required_k)
+        print(selected_crop)
+    else:
+        print('Crop does not exist in database')
+    return selected_crop
 
-    crop = Crop("Corn", 120, 60, 40)
-    recommendations = fertilizer_recommendation(crop, Fertilizer("DAP", 18, 46, 0), Fertilizer("MOP", 22, 8, 7))
+
+def main():
+    #TODO: make a test to varify if the fertilizer is in order and switch them
+    recommendations = calculate_fertilizer(
+        get_selected_crop("rice"),
+        Fertilizer("DAP", 18, 46, 0),
+        Fertilizer("Urea", 46, 0, 0)
+    )
     print(recommendations)
 
 
