@@ -1,8 +1,9 @@
 import copy, math
-from db import crops_db
+from db import crops_db, fertilizer_db
 
 
 class Crop:
+    """ type: class (object: Crop) Create instance of tyoe Class with object having property -> N,P, K, name, formation and ratio"""
     def __init__(self, name, n=0, p=0, k=0):
         self.N = n
         self.P = p
@@ -24,6 +25,7 @@ class Crop:
 
 
 class Fertilizer(Crop):  # fertilizer object - inherits form Crop
+    """ type: class (object: fertilizer) Create instance of tyoe Class with object having property -> N,P, K, name, formation and ratio"""
     def __init__(self, name, n=0, p=0, k=0):
         super().__init__(name, n, p, k)
         self.weight = self.N + self.P + self.K #TODO: review purpose for this attribute
@@ -73,25 +75,39 @@ def calculate_fertilizer(crop, *args):
     return recommendations
 
 
-def get_selected_crop(selected):
-    crop = crops_db.crops_collections.get(selected.capitalize())
-    if crop is not None:
-        required_n = crop.get('N')
-        required_p = crop.get('P2O5')
-        required_k = crop.get('K2O')
-        selected_crop = Crop(selected, required_n, required_p, required_k)
-        print(selected_crop)
+def get_selection_by_type(name, type):  # Get crop or fertilizer from db base on the type parameter
+
+    selected_crop = None
+
+    if type == 'crop':
+        selected = crops_db.crops_collections.get(name.capitalize())
+    if type == 'fertilizer':
+        selected = fertilizer_db.fertilizer_collections.get(name.capitalize())
+
+    if selected is not None:
+        required_n = selected.get('N')
+        required_p = selected.get('P2O5')
+        required_k = selected.get('K2O')
+        if type == 'crop':
+            selected_crop = Crop(name, required_n, required_p, required_k)
+        if type == 'fertilizer':
+            selected_crop = Fertilizer(name, required_n, required_p, required_k)
     else:
-        print('Crop does not exist in database')
+        print(f'{name} does not exist in database')
+
     return selected_crop
 
 
+
 def main():
-    #TODO: make a test to varify if the fertilizer is in order and switch them
+
+    crop = get_selection_by_type(name='rice', type='crop')
+    fertilizer_one = get_selection_by_type(name='DAP', type='fertilizer')
+    fertilizer_two = get_selection_by_type(name='Urea', type='fertilizer')
     recommendations = calculate_fertilizer(
-        get_selected_crop("rice"),
-        Fertilizer("DAP", 18, 46, 0),
-        Fertilizer("Urea", 46, 0, 0)
+        crop,
+        fertilizer_one,
+        fertilizer_two
     )
     print(recommendations)
 
