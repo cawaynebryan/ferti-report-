@@ -104,7 +104,6 @@ def get_selection_by_type(name, _type):  # Get crop or fertilizer from db base o
     return selected_crop
 
 
-
 def main():
 
     crop = get_selection_by_type(name='corn', _type='crop')
