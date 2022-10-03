@@ -2,7 +2,13 @@
 # https://github.com/codefirstio/tkinter-data-entry
 # https://aesl.ces.uga.edu/soil/fertcalc/
 
+
+
+#TODO: add main crop, soil depth, unit for
+
+
 import tkinter as tk
+from tkinter import DISABLED,END, NORMAL
 from tkinter import ttk
 
 from db import fertilizer_db
@@ -48,9 +54,8 @@ address_entry= tk.Entry(client_info_frame)
 address_label.grid(row=2, column=0, sticky="e")
 address_entry.grid(row=2, column=2)
 
-parish_list = ["Kingston", "St. Andrew", "St. Catherine", "Clarendon", "Manchester", "St. Elizabeth",
-          "Westmoreland", "Hanover", "St. James", "Trelawny", "St. Ann", "St. Mary", "Portland",
-          "St. Thomas"]
+parish_list = ["St. Thomas", "Portland", "Kingston", "St. Andrew", "St. Catherine", "Clarendon", "Manchester",
+               "St. Elizabeth", "Westmoreland", "Hanover", "St. James", "Trelawny", "St. Ann", "St. Mary"]
 
 parish = tk.StringVar()
 parish_label = tk.Label(client_info_frame, text='Parish :')
@@ -76,7 +81,7 @@ for widget in client_info_frame.winfo_children():
 
 # ------------------------------------------------------------------------ Fertilizer Section
 # ------
-fertilizer_frame = tk.LabelFrame(frame, text='Step 2 select available Blend')
+fertilizer_frame = tk.LabelFrame(frame, text='Select Available  Blend')
 fertilizer_frame.grid(row=1, column=0, padx=10, pady=10, sticky='w', ipadx=10, ipady=10)
 
 col1_row = 0
@@ -123,16 +128,30 @@ ph_entry.grid(row=1, column=1, padx=10, pady=10)
 
 
 # -------------------------------------------------------------------------------------------
+param_collected = []
+def click(event):
+
+    for parameter in param_collected:
+        if parameter.get() == 'ppm':
+            parameter.configure(state=NORMAL)
+            parameter.delete(0, END)
+
+
 parameters = ["N", "P2O5", "K2O"]
 parameters_frame = tk.LabelFrame(soil_text_frame, text="Soil Test Result")
 parameters_frame.grid(row=1, column=0, pady=10, ipadx=10, ipady=10)
 
 for index, param in enumerate(parameters):
     tk.Label(parameters_frame, text=param).grid(row=0, column=index, padx=10, sticky="w")
-    tk.Entry(parameters_frame, width=15).grid(row=1, column=index, padx=10, )
+    param_entry = tk.Entry(parameters_frame, name=param.lower(), width=15)
+    param_entry.grid(row=1, column=index, padx=10)
+    param_entry.insert(END, "ppm")
+    param_entry.configure(state=DISABLED)
+    param_entry.bind("<1>", click)
+    param_collected.append(param_entry)
 
 
-generate_report_button = tk.Button(soil_text_frame, text="Generate Report", command=generate_report)  # Button for report generation
+generate_report_button = tk.Button(soil_text_frame, text="Generate Report", command=lambda: click(param_collected))  # Button for report generation
 generate_report_button.grid(row=2, column=0, sticky="w")
 
 
